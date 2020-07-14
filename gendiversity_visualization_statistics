@@ -26,18 +26,17 @@ masters_lists <- list.files(pattern = ".gen")
 ##now create list 
 masters_gen <- list()
 masters_nomd <- list()
-masters_poppr <- list()
-pop_names <- c("Local", "Regional", "Global")
-col_names <- c("Accession", "Hexp")
 
-
-##first generate the necessary 
+##Load in .gen files AND 
 for(i in 1:length(masters_lists)){
   masters_gen[[i]] <- read.genepop(masters_lists[i], ncode = 3)
   
   masters_nomd[[i]] <- missingno(masters_gen[[i]], type = "geno", cutoff = 0.25, quiet = FALSE, freq = FALSE)
 }
 
+##########################################################
+############### Species by Species Matrices ##############
+##########################################################
 
 ##ACMI 
 
