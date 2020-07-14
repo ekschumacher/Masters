@@ -34,6 +34,12 @@ for(i in 1:length(sos_lists)){
   
   sos_nomd[[i]] <- missingno(sos_gen[[i]], type = "geno", cutoff = 0.25, quiet = FALSE, freq = FALSE)
   
+    if(length(levels(sos_nomd[[i]]@pop)) > 2){
+    levels(sos_nomd[[i]]@pop) <- c("Local", "Regional", "Global")
+  } else {
+    levels(sos_nomd[[i]]@pop) <- c("Local", "Global")
+  }
+  
   sos_poppr[[i]] <- poppr(sos_nomd[[i]])
   
 }
