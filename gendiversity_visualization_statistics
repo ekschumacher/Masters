@@ -44,176 +44,48 @@ for(i in 1:length(sos_lists)){
   
 }
 
+##need to rename ERUM bc its local1, local2, and global
+levels(sos_nomd[[6]]@pop) <- c("Local1", "Local2", "Global")
+sos_poppr[[6]]$Pop <- c("Local1", "Local2", "Global", "Total")
+
+
 ##########################################################
-############### Species by Species Matrices ##############
+################# Number of Alleles ######################
 ##########################################################
 
-##ACMI 
+##first calculate number of alleles by species and population 
+num_all <- list()
 
-##create matrix
-num_all_acmi_matrix <- matrix(nrow = 24, ncol = 2)
-num_all_acmi_matrix[1:8, 1] <- "Local"
-num_all_acmi_matrix[9:17, 1] <- "Regional"
-num_all_acmi_matrix[18:24, 1] <- "Global"
-num_all_acmi_matrix[1:8, 2] <- num_all[[1]][,1]
-num_all_acmi_matrix[9:16, 2] <- num_all[[1]][,2]
-num_all_acmi_matrix[17:24, 2] <- num_all[[1]][,3]
+for(i in 1:length(sos_nomd)){
+  
+  num_all[[i]] <- allelic.richness(sos_nomd[[i]])$Ar
+  
+}
 
-##set col names
-colnames(num_all_acmi_matrix) <- c("Accession", "Num_Alls")
 
-##new column with species name
-num_all_acmi_matrix <- data.frame(num_all_acmi_matrix)
-num_all_acmi_matrix$species <- "ACMI"
+##then generate matrices for plotting 
 
-##ARTR
-num_all_artr_matrix <- matrix(nrow = length(num_all[[2]][,1])*3, ncol = 2 )
-num_all_artr_matrix[1:8, 1] <- "Local"
-num_all_artr_matrix[9:16, 1] <- "Regional"
-num_all_artr_matrix[17:24, 1] <- "Global"
-num_all_artr_matrix[1:8, 2] <- num_all[[2]][,1]
-num_all_artr_matrix[9:16, 2] <- num_all[[2]][,2]
-num_all_artr_matrix[17:24, 2] <- num_all[[2]][,3]
-
-##set column names
-colnames(num_all_artr_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_artr_matrix <- data.frame(num_all_artr_matrix)
-num_all_artr_matrix$species <- "ARTR"
-
-##run levene test on ARTR 
-leveneTest(as.numeric(num_all_artr_matrix[,2]) ~ as.factor(num_all_artr_matrix[,1]))
-
-##now run Kruskall - Wallis 
-
-kruskal.test(as.numeric(num_all_artr_matrix[,2]) ~ as.factor(num_all_artr_matrix[,1]))
-
-##now do ASCA - create matrix
-num_all_asca_matrix <- matrix(nrow = length(num_all[[3]][,1])*2, ncol = 2)
-num_all_asca_matrix[1:10, 1] <- "Local"
-num_all_asca_matrix[11:20, 1] <- "Global"
-num_all_asca_matrix[1:10, 2] <- num_all[[3]][,1]
-num_all_asca_matrix[11:20, 2] <- num_all[[3]][,2]
-
-##set col names
-colnames(num_all_asca_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_asca_matrix <- data.frame(num_all_asca_matrix)
-num_all_asca_matrix$species <- "ASCA"
-
-##run levene test on ASCA 
-leveneTest(as.numeric(num_all_asca_matrix[,2]) ~ as.factor(num_all_asca_matrix[,1]))
-
-##run Kruskal Wallis test 
-kruskal.test(as.numeric(num_all_asca_matrix[,2]) ~ as.factor(num_all_asca_matrix[,1]))
-
-##now do CHVI
-num_all_chvi_matrix <- matrix(nrow = length(num_all[[4]][,1])*3, ncol = 2)
-num_all_chvi_matrix[1:9, 1] <- "Local"
-num_all_chvi_matrix[10:18, 1] <- "Regional"
-num_all_chvi_matrix[19:27, 1] <- "Global"
-num_all_chvi_matrix[1:9, 2] <- num_all[[4]][,1]
-num_all_chvi_matrix[10:18, 2] <- num_all[[4]][,2]
-num_all_chvi_matrix[19:27, 2] <- num_all[[4]][,3]
-
-##set col names
-colnames(num_all_chvi_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_chvi_matrix <- data.frame(num_all_chvi_matrix)
-num_all_chvi_matrix$species <- "CHVI"
-
-##run levene test on CHVI 
-leveneTest(as.numeric(num_all_chvi_matrix[,2]) ~ as.factor(num_all_chvi_matrix[,1]))
-
-##can run an anova but will do kruskal-wallis 
-
-kruskal.test(as.numeric(num_all_chvi_matrix[,2]) ~ as.factor(num_all_chvi_matrix[,1]))
-
-##do ERNA 
-num_all_erna_matrix <- matrix(nrow = length(num_all[[5]][,1])*3, ncol = 2)
-num_all_erna_matrix[1:7,2] <- num_all[[5]][,1]
-num_all_erna_matrix[8:14,2] <- num_all[[5]][,2]
-num_all_erna_matrix[15:21,2] <- num_all[[5]][,3]
-
-num_all_erna_matrix[1:7,1] <- "Local"
-num_all_erna_matrix[8:14,1] <- "Regional"
-num_all_erna_matrix[15:21, 1] <- "Global"
-
-##set column names
-colnames(num_all_erna_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_erna_matrix <- data.frame(num_all_erna_matrix)
-num_all_erna_matrix$species <- "ERNA"
+gendiv_matrix <- matrix(nrow = sum(loci[,1]), ncol = 4)
+colnames(gendiv_matrix) <- c("Species","AllRich", "HExp", "Inbreeding")
+gendiv_matrix[1:24,1] <- "ACMI"
+gendiv_matrix[25:48,1] <- "ARTR"
+gendiv_matrix[49:68, 1] <- "ASCA"
+gendiv_matrix[69:95,1] <- "CHVI"
+gendiv_matrix[96:116,1] <- "ERNA"
+gendiv_matrix[117:146,1] <- "ERUM"
+gendiv_matrix[147:173,1] <- "GRSQ"
 
 ##
-leveneTest(as.numeric(num_all_erna_matrix[,2]) ~ as.factor(num_all_erna_matrix[,1]))
+species_names <- c("ACMI", "ARTR", "ASCA", "CHVI","ERNA","ERUM","GRSQ")
 
-##
-kruskal.test(as.numeric(num_all_erna_matrix[,2]) ~ as.factor(num_all_erna_matrix[,1]))
+names(num_all) <- species_names
 
-##do ERUM
-num_all_erum_matrix <- matrix(nrow = length(num_all[[6]][,1])*3, ncol = 2)
-num_all_erum_matrix[1:10,2] <- num_all[[6]][,1]
-num_all_erum_matrix[11:20,2] <- num_all[[6]][,2]
-num_all_erum_matrix[21:30,2] <- num_all[[6]][,3]
+for(s in species_names){
+  
+  gendiv_matrix[gendiv_matrix[,1] == s,][,2] <- num_all[[s]]
+  
+}
 
-num_all_erum_matrix[1:10,1] <- "Local"
-num_all_erum_matrix[11:20,1] <- "Local2"
-num_all_erum_matrix[21:30, 1] <- "Global"
-
-##set col names
-colnames(num_all_erum_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_erum_matrix <- data.frame(num_all_erum_matrix)
-num_all_erum_matrix$species <- "ERUM"
-
-##leveneTest
-leveneTest(as.numeric(num_all_erum_matrix[,2]) ~ as.factor(num_all_erum_matrix[,1]))
-
-##Kruskal Wallis
-kruskal.test(as.numeric(num_all_erum_matrix[,2]) ~ as.factor(num_all_erum_matrix[,1]))
-
-##GRSQ 
-num_all_grsq_matrix <- matrix(nrow = length(num_all[[7]][,1])*3, ncol = 2)
-
-##GRSQ matrix 
-num_all_grsq_matrix[1:9,2] <- num_all[[7]][,1]
-num_all_grsq_matrix[10:18,2] <- num_all[[7]][,2]
-num_all_grsq_matrix[19:27,2] <- num_all[[7]][,3]
-
-num_all_grsq_matrix[1:9,1] <- "Local"
-num_all_grsq_matrix[10:18,1] <- "Regional"
-num_all_grsq_matrix[19:27, 1] <- "Global"
-
-##set col names
-colnames(num_all_grsq_matrix) <- c("Accession", "Num_Alls")
-
-##set species column
-num_all_grsq_matrix <- data.frame(num_all_grsq_matrix)
-num_all_grsq_matrix$species <- "GRSQ"
-
-
-##
-leveneTest(as.numeric(num_all_grsq_matrix[,2]) ~ as.factor(num_all_grsq_matrix[,1]))
-
-##kruskal wallis
-kruskal.test(as.numeric(num_all_grsq_matrix[,2]) ~ as.factor(num_all_grsq_matrix[,1]))
-
-##now make a big boxplot 
-
-num_all_bind <- rbind(num_all_acmi_matrix, num_all_artr_matrix, num_all_asca_matrix,
-                      num_all_chvi_matrix, num_all_erna_matrix, num_all_erum_matrix,
-                      num_all_grsq_matrix)
-
-num_all_bind[,2] <- as.numeric(as.character(num_all_bind$Num_Alls))
-
-##
-write.csv(num_all_bind,"num_all_byspecies.csv")
 
 
 ##now plot box plots
