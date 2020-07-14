@@ -21,17 +21,21 @@ setwd("G:\\My Drive\\Masters\\masters_gen")
 ###############################################
 
 ##load in .gen files 
-masters_lists <- list.files(pattern = ".gen")
+sos_lists <- list.files(pattern = ".gen")
 
 ##now create list 
-masters_gen <- list()
-masters_nomd <- list()
+sos_gen <- list()
+sos_nomd <- list()
+sos_poppr <- list()
 
-##Load in .gen files AND 
-for(i in 1:length(masters_lists)){
-  masters_gen[[i]] <- read.genepop(masters_lists[i], ncode = 3)
+##Load in .gen files and remove greater than 25% missing data
+for(i in 1:length(sos_lists)){
+  sos_gen[[i]] <- read.genepop(sos_lists[i], ncode = 3)
   
-  masters_nomd[[i]] <- missingno(masters_gen[[i]], type = "geno", cutoff = 0.25, quiet = FALSE, freq = FALSE)
+  sos_nomd[[i]] <- missingno(sos_gen[[i]], type = "geno", cutoff = 0.25, quiet = FALSE, freq = FALSE)
+  
+  sos_poppr[[i]] <- poppr(sos_nomd[[i]])
+  
 }
 
 ##########################################################
