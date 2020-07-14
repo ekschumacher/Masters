@@ -1,0 +1,662 @@
+###############################################
+############### Libraries #####################
+###############################################
+
+library(adegenet)
+library(poppr)
+library(ggplot2)
+library(poppr)
+library(hierfstat)
+library(car)
+library(PMCMR)
+library(Demerelate)
+
+###############################################
+############## Working Directory ##############
+###############################################
+setwd("G:\\My Drive\\Masters\\masters_gen")
+
+###############################################
+############### Loading Files #################
+###############################################
+
+##load in .gen files 
+masters_lists <- list.files(pattern = ".gen")
+
+##now create list 
+masters_gen <- list()
+masters_nomd <- list()
+masters_poppr <- list()
+pop_names <- c("Local", "Regional", "Global")
+col_names <- c("Accession", "Hexp")
+
+
+##first generate the necessary 
+for(i in 1:length(masters_lists)){
+  masters_gen[[i]] <- read.genepop(masters_lists[i], ncode = 3)
+  
+  masters_nomd[[i]] <- missingno(masters_gen[[i]], type = "geno", cutoff = 0.25, quiet = FALSE, freq = FALSE)
+}
+
+
+##ACMI 
+
+##create matrix
+num_all_acmi_matrix <- matrix(nrow = 24, ncol = 2)
+num_all_acmi_matrix[1:8, 1] <- "Local"
+num_all_acmi_matrix[9:17, 1] <- "Regional"
+num_all_acmi_matrix[18:24, 1] <- "Global"
+num_all_acmi_matrix[1:8, 2] <- num_all[[1]][,1]
+num_all_acmi_matrix[9:16, 2] <- num_all[[1]][,2]
+num_all_acmi_matrix[17:24, 2] <- num_all[[1]][,3]
+
+##set col names
+colnames(num_all_acmi_matrix) <- c("Accession", "Num_Alls")
+
+##new column with species name
+num_all_acmi_matrix <- data.frame(num_all_acmi_matrix)
+num_all_acmi_matrix$species <- "ACMI"
+
+##ARTR
+num_all_artr_matrix <- matrix(nrow = length(num_all[[2]][,1])*3, ncol = 2 )
+num_all_artr_matrix[1:8, 1] <- "Local"
+num_all_artr_matrix[9:16, 1] <- "Regional"
+num_all_artr_matrix[17:24, 1] <- "Global"
+num_all_artr_matrix[1:8, 2] <- num_all[[2]][,1]
+num_all_artr_matrix[9:16, 2] <- num_all[[2]][,2]
+num_all_artr_matrix[17:24, 2] <- num_all[[2]][,3]
+
+##set column names
+colnames(num_all_artr_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_artr_matrix <- data.frame(num_all_artr_matrix)
+num_all_artr_matrix$species <- "ARTR"
+
+##run levene test on ARTR 
+leveneTest(as.numeric(num_all_artr_matrix[,2]) ~ as.factor(num_all_artr_matrix[,1]))
+
+##now run Kruskall - Wallis 
+
+kruskal.test(as.numeric(num_all_artr_matrix[,2]) ~ as.factor(num_all_artr_matrix[,1]))
+
+##now do ASCA - create matrix
+num_all_asca_matrix <- matrix(nrow = length(num_all[[3]][,1])*2, ncol = 2)
+num_all_asca_matrix[1:10, 1] <- "Local"
+num_all_asca_matrix[11:20, 1] <- "Global"
+num_all_asca_matrix[1:10, 2] <- num_all[[3]][,1]
+num_all_asca_matrix[11:20, 2] <- num_all[[3]][,2]
+
+##set col names
+colnames(num_all_asca_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_asca_matrix <- data.frame(num_all_asca_matrix)
+num_all_asca_matrix$species <- "ASCA"
+
+##run levene test on ASCA 
+leveneTest(as.numeric(num_all_asca_matrix[,2]) ~ as.factor(num_all_asca_matrix[,1]))
+
+##run Kruskal Wallis test 
+kruskal.test(as.numeric(num_all_asca_matrix[,2]) ~ as.factor(num_all_asca_matrix[,1]))
+
+##now do CHVI
+num_all_chvi_matrix <- matrix(nrow = length(num_all[[4]][,1])*3, ncol = 2)
+num_all_chvi_matrix[1:9, 1] <- "Local"
+num_all_chvi_matrix[10:18, 1] <- "Regional"
+num_all_chvi_matrix[19:27, 1] <- "Global"
+num_all_chvi_matrix[1:9, 2] <- num_all[[4]][,1]
+num_all_chvi_matrix[10:18, 2] <- num_all[[4]][,2]
+num_all_chvi_matrix[19:27, 2] <- num_all[[4]][,3]
+
+##set col names
+colnames(num_all_chvi_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_chvi_matrix <- data.frame(num_all_chvi_matrix)
+num_all_chvi_matrix$species <- "CHVI"
+
+##run levene test on CHVI 
+leveneTest(as.numeric(num_all_chvi_matrix[,2]) ~ as.factor(num_all_chvi_matrix[,1]))
+
+##can run an anova but will do kruskal-wallis 
+
+kruskal.test(as.numeric(num_all_chvi_matrix[,2]) ~ as.factor(num_all_chvi_matrix[,1]))
+
+##do ERNA 
+num_all_erna_matrix <- matrix(nrow = length(num_all[[5]][,1])*3, ncol = 2)
+num_all_erna_matrix[1:7,2] <- num_all[[5]][,1]
+num_all_erna_matrix[8:14,2] <- num_all[[5]][,2]
+num_all_erna_matrix[15:21,2] <- num_all[[5]][,3]
+
+num_all_erna_matrix[1:7,1] <- "Local"
+num_all_erna_matrix[8:14,1] <- "Regional"
+num_all_erna_matrix[15:21, 1] <- "Global"
+
+##set column names
+colnames(num_all_erna_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_erna_matrix <- data.frame(num_all_erna_matrix)
+num_all_erna_matrix$species <- "ERNA"
+
+##
+leveneTest(as.numeric(num_all_erna_matrix[,2]) ~ as.factor(num_all_erna_matrix[,1]))
+
+##
+kruskal.test(as.numeric(num_all_erna_matrix[,2]) ~ as.factor(num_all_erna_matrix[,1]))
+
+##do ERUM
+num_all_erum_matrix <- matrix(nrow = length(num_all[[6]][,1])*3, ncol = 2)
+num_all_erum_matrix[1:10,2] <- num_all[[6]][,1]
+num_all_erum_matrix[11:20,2] <- num_all[[6]][,2]
+num_all_erum_matrix[21:30,2] <- num_all[[6]][,3]
+
+num_all_erum_matrix[1:10,1] <- "Local"
+num_all_erum_matrix[11:20,1] <- "Local2"
+num_all_erum_matrix[21:30, 1] <- "Global"
+
+##set col names
+colnames(num_all_erum_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_erum_matrix <- data.frame(num_all_erum_matrix)
+num_all_erum_matrix$species <- "ERUM"
+
+##leveneTest
+leveneTest(as.numeric(num_all_erum_matrix[,2]) ~ as.factor(num_all_erum_matrix[,1]))
+
+##Kruskal Wallis
+kruskal.test(as.numeric(num_all_erum_matrix[,2]) ~ as.factor(num_all_erum_matrix[,1]))
+
+##GRSQ 
+num_all_grsq_matrix <- matrix(nrow = length(num_all[[7]][,1])*3, ncol = 2)
+
+##GRSQ matrix 
+num_all_grsq_matrix[1:9,2] <- num_all[[7]][,1]
+num_all_grsq_matrix[10:18,2] <- num_all[[7]][,2]
+num_all_grsq_matrix[19:27,2] <- num_all[[7]][,3]
+
+num_all_grsq_matrix[1:9,1] <- "Local"
+num_all_grsq_matrix[10:18,1] <- "Regional"
+num_all_grsq_matrix[19:27, 1] <- "Global"
+
+##set col names
+colnames(num_all_grsq_matrix) <- c("Accession", "Num_Alls")
+
+##set species column
+num_all_grsq_matrix <- data.frame(num_all_grsq_matrix)
+num_all_grsq_matrix$species <- "GRSQ"
+
+
+##
+leveneTest(as.numeric(num_all_grsq_matrix[,2]) ~ as.factor(num_all_grsq_matrix[,1]))
+
+##kruskal wallis
+kruskal.test(as.numeric(num_all_grsq_matrix[,2]) ~ as.factor(num_all_grsq_matrix[,1]))
+
+##now make a big boxplot 
+
+num_all_bind <- rbind(num_all_acmi_matrix, num_all_artr_matrix, num_all_asca_matrix,
+                      num_all_chvi_matrix, num_all_erna_matrix, num_all_erum_matrix,
+                      num_all_grsq_matrix)
+
+num_all_bind[,2] <- as.numeric(as.character(num_all_bind$Num_Alls))
+
+##
+write.csv(num_all_bind,"num_all_byspecies.csv")
+
+
+##now plot box plots
+pdf("num_all_boxplot.pdf", width = 8, height = 6)
+ggplot(data = num_all_bind, aes(x=species, y=Num_Alls)) + 
+  geom_boxplot(aes(fill=Accession)) + xlab("Species") + 
+  ylab("Number of Alleles") + ggtitle("Number of Alleles Among Accessions") +
+  scale_fill_manual(values = c("darkgreen", "darkorchid4", "dodgerblue", "darkorchid1"))
+dev.off()   
+
+##by Species table
+
+pdf("num_all_boxplot_byspecies.pdf", width = 8, height = 6)
+ggplot(data = num_all_bind, aes(x=species, y=Num_Alls)) + 
+  geom_boxplot() +
+  xlab("Species") + 
+  ylab("Number of Alleles") + ggtitle("Number of Alleles by Species") 
+dev.off()
+
+##by species determine if Shapiro Wilks is failed
+
+shapiro.test(num_all_bind[,2])
+
+##run levene test on ARTR 
+leveneTest(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##now run Kruskall - Wallis 
+
+kruskal.test(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##post-hoc test
+posthoc.kruskal.nemenyi.test(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##
+species_names <- c("Achillea millefolium", "Artemisia tridentata", 
+                   "Astragalus canadensis", "Chrysothamnus viscidiflorus", 
+                   "Ericameria nauseosa", "Eriogonum umbellatum", "Grindelia squarrosa")
+
+###name matrix 
+
+##
+
+pdf("num_all_bypop.pdf", width = 8, height = 6)
+barplot(num_all, beside = T, ylim = c(0, 15), main = "Number of Alleles by Species and Population", col = c("darkorchid1", "dodgerblue", "darkgreen"), cex.names = 0.4, ylab = "Average Number of Alleles")
+legend('topright', legend = c("Local", "Regional", "Global"), pch = 16, col = c("darkorchid1", "dodgerblue", "darkgreen"))
+dev.off()
+
+
+##create hexp list
+
+hexp_list <- list()
+
+for(i in 1:length(masters_nomd)){
+  
+  hexp_list[[i]] <- summary(seppop(masters_nomd[[1]])$Regional)$Hexp
+  print(shapiro.test(hexp_list[[i]])) 
+  
+}
+
+##now assemble data frames
+
+##ACMI 
+
+##create matrix
+hexp_acmi_matrix <- matrix(nrow = 24, ncol = 2)
+hexp_acmi_matrix[1:8, 1] <- "Local"
+hexp_acmi_matrix[9:17, 1] <- "Regional"
+hexp_acmi_matrix[18:24, 1] <- "Global"
+hexp_acmi_matrix[1:8, 2] <- summary(seppop(masters_nomd[[1]])$Local)$Hexp
+hexp_acmi_matrix[9:16, 2] <- summary(seppop(masters_nomd[[1]])$Regional)$Hexp
+hexp_acmi_matrix[17:24, 2] <- summary(seppop(masters_nomd[[1]])$Global)$Hexp
+
+##set col names
+colnames(hexp_acmi_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_acmi_matrix <- data.frame(hexp_acmi_matrix)
+hexp_acmi_matrix$species <- "ACMI"
+
+##change back to numeric
+hexp_acmi_matrix[,2] <- as.numeric(as.character(hexp_acmi_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_acmi_matrix[,2] ~ as.factor(hexp_acmi_matrix[,1]))
+
+##can run an anova but will do kruskal-wallis 
+
+kruskal.test(hexp_acmi_matrix[,2] ~ as.factor(hexp_acmi_matrix[,1]))
+
+##ARTR 
+
+##create matrix
+hexp_artr_matrix <- matrix(nrow = 24, ncol = 2)
+hexp_artr_matrix[1:8, 1] <- "Local"
+hexp_artr_matrix[9:17, 1] <- "Regional"
+hexp_artr_matrix[18:24, 1] <- "Global"
+hexp_artr_matrix[1:8, 2] <- summary(seppop(masters_nomd[[2]])$Local)$Hexp
+hexp_artr_matrix[9:16, 2] <- summary(seppop(masters_nomd[[2]])$Regional)$Hexp
+hexp_artr_matrix[17:24, 2] <- summary(seppop(masters_nomd[[2]])$Global)$Hexp
+
+##set col names
+colnames(hexp_artr_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_artr_matrix <- data.frame(hexp_artr_matrix)
+hexp_artr_matrix$species <- "ARTR"
+
+##change back to numeric
+hexp_artr_matrix[,2] <- as.numeric(as.character(hexp_artr_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_artr_matrix[,2] ~ as.factor(hexp_artr_matrix[,1]))
+
+##can run an anova but will do kruskal-wallis 
+
+kruskal.test(hexp_artr_matrix[,2] ~ as.factor(hexp_artr_matrix[,1]))
+
+##ASCA 
+
+##create matrix
+hexp_asca_matrix <- matrix(nrow = 20, ncol = 2)
+hexp_asca_matrix[1:10, 1] <- "Local"
+hexp_asca_matrix[11:20, 1] <- "Global"
+hexp_asca_matrix[1:10, 2] <- summary(seppop(masters_nomd[[3]])$Local)$Hexp
+hexp_asca_matrix[11:20, 2] <- summary(seppop(masters_nomd[[3]])$Regional)$Hexp
+
+##set col names
+colnames(hexp_asca_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_asca_matrix <- data.frame(hexp_asca_matrix)
+hexp_asca_matrix$species <- "ASCA"
+
+##change back to numeric
+hexp_asca_matrix[,2] <- as.numeric(as.character(hexp_asca_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_asca_matrix[,2] ~ as.factor(hexp_asca_matrix[,1]))
+
+##can run an anova but will do kruskal-wallis 
+
+wilcox.test(hexp_asca_matrix[,2] ~ as.factor(hexp_asca_matrix[,1]))
+
+##CHVI
+
+##create matrix
+hexp_chvi_matrix <- matrix(nrow = 27, ncol = 2)
+hexp_chvi_matrix[1:9, 1] <- "Local"
+hexp_chvi_matrix[10:18, 1] <- "Regional"
+hexp_chvi_matrix[19:27, 1] <- "Global"
+hexp_chvi_matrix[1:9, 2] <- summary(seppop(masters_nomd[[4]])$Local)$Hexp
+hexp_chvi_matrix[10:18, 2] <- summary(seppop(masters_nomd[[4]])$Regional)$Hexp
+hexp_chvi_matrix[19:27, 2] <- summary(seppop(masters_nomd[[4]])$Global)$Hexp
+
+##set col names
+colnames(hexp_chvi_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_chvi_matrix <- data.frame(hexp_chvi_matrix)
+hexp_chvi_matrix$species <- "CHVI"
+
+##change back to numeric
+hexp_chvi_matrix[,2] <- as.numeric(as.character(hexp_chvi_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_chvi_matrix[,2] ~ as.factor(hexp_chvi_matrix[,1]))
+
+##
+kruskal.test(hexp_chvi_matrix[,2] ~ as.factor(hexp_chvi_matrix[,1]))
+
+###ERNA
+hexp_erna_matrix <- matrix(nrow = 21, ncol = 2)
+hexp_erna_matrix[1:7, 1] <- "Local"
+hexp_erna_matrix[8:14, 1] <- "Regional"
+hexp_erna_matrix[15:21, 1] <- "Global"
+hexp_erna_matrix[1:7, 2] <- summary(seppop(masters_nomd[[5]])$Local)$Hexp
+hexp_erna_matrix[8:14, 2] <- summary(seppop(masters_nomd[[5]])$Regional)$Hexp
+hexp_erna_matrix[15:21, 2] <- summary(seppop(masters_nomd[[5]])$Global)$Hexp
+
+##set col names
+colnames(hexp_erna_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_erna_matrix <- data.frame(hexp_erna_matrix)
+hexp_erna_matrix$species <- "ERNA"
+
+##change back to numeric
+hexp_erna_matrix[,2] <- as.numeric(as.character(hexp_erna_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_erna_matrix[,2] ~ as.factor(hexp_erna_matrix[,1]))
+
+##
+kruskal.test(hexp_erna_matrix[,2] ~ as.factor(hexp_erna_matrix[,1]))
+
+
+##ERUM
+
+##create matrix
+hexp_erum_matrix <- matrix(nrow = 30, ncol = 2)
+hexp_erum_matrix[1:10, 1] <- "Local"
+hexp_erum_matrix[11:20, 1] <- "Local2"
+hexp_erum_matrix[21:30, 1] <- "Global"
+hexp_erum_matrix[1:10, 2] <- summary(seppop(masters_nomd[[6]])$Local)$Hexp
+hexp_erum_matrix[11:20, 2] <- summary(seppop(masters_nomd[[6]])$Regional)$Hexp
+hexp_erum_matrix[21:30, 2] <- summary(seppop(masters_nomd[[6]])$Global)$Hexp
+
+##set col names
+colnames(hexp_erum_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_erum_matrix <- data.frame(hexp_erum_matrix)
+hexp_erum_matrix$species <- "ERUM"
+
+##change back to numeric
+hexp_erum_matrix[,2] <- as.numeric(as.character(hexp_erum_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_erum_matrix[,2] ~ as.factor(hexp_erum_matrix[,1]))
+
+##
+kruskal.test(hexp_erum_matrix[,2] ~ as.factor(hexp_erum_matrix[,1]))
+
+##GRSQ
+
+##create matrix
+hexp_grsq_matrix <- matrix(nrow = 27, ncol = 2)
+hexp_grsq_matrix[1:9, 1] <- "Local"
+hexp_grsq_matrix[10:18, 1] <- "Regional"
+hexp_grsq_matrix[19:27, 1] <- "Global"
+hexp_grsq_matrix[1:9, 2] <- summary(seppop(masters_nomd[[7]])$Local)$Hexp
+hexp_grsq_matrix[10:18, 2] <- summary(seppop(masters_nomd[[7]])$Regional)$Hexp
+hexp_grsq_matrix[19:27, 2] <- summary(seppop(masters_nomd[[7]])$Global)$Hexp
+
+##set col names
+colnames(hexp_grsq_matrix) <- c("Accession", "Hexp")
+
+##new column with species name
+hexp_grsq_matrix <- data.frame(hexp_grsq_matrix)
+hexp_grsq_matrix$species <- "GRSQ"
+
+##change back to numeric
+hexp_grsq_matrix[,2] <- as.numeric(as.character(hexp_grsq_matrix[,2]))
+
+##run levene test on CHVI 
+leveneTest(hexp_grsq_matrix[,2] ~ as.factor(hexp_grsq_matrix[,1]))
+
+##
+kruskal.test(hexp_grsq_matrix[,2] ~ as.factor(hexp_grsq_matrix[,1]))
+
+##plot Hexp 
+
+hexp_bind <- rbind(hexp_acmi_matrix, hexp_artr_matrix, hexp_asca_matrix,
+                   hexp_chvi_matrix, hexp_erna_matrix, hexp_erum_matrix,
+                   hexp_grsq_matrix)
+
+##now plot box plots
+pdf("hexp_boxplot.pdf", width = 8, height = 6)
+ggplot(data = hexp_bind, aes(x=species, y=Hexp)) + 
+  geom_boxplot(aes(fill=Accession)) + xlab("Species") + 
+  ylab("Expected Heterozygosity") + ggtitle("Expected Heterozygosity Among Accessions") +
+  scale_fill_manual(values = c("darkgreen", "darkorchid4", "dodgerblue", "darkorchid1")) +
+  ylim(c(0,1))
+dev.off()  
+
+
+##load F coefficients
+
+setwd("G:\\My Drive\\Masters")
+
+fis_species <- read.csv("fis_allspecies.csv")
+
+acmi_fis <- fis_species[fis_species$Species == "ACMI",]
+artr_fis <- fis_species[fis_species$Species == "ARTR",]
+asca_fis <- fis_species[fis_species$Species == "ASCA",]
+chvi_fis <- fis_species[fis_species$Species == "CHVI",]
+erna_fis <- fis_species[fis_species$Species == "ERNA",]
+erum_fis <- fis_species[fis_species$Species == "ERUM",]
+grsq_fis <- fis_species[fis_species$Species == "GRSQ",]
+
+##now run tests on every species
+
+##shapiro
+shapiro.test(acmi_fis[,3])
+
+##levene
+leveneTest(acmi_fis[,3] ~ as.factor(acmi_fis[,1]))
+
+##ACMI ANOVA
+acmi_aov <- aov(acmi_fis[,3] ~ as.factor(acmi_fis[,1]))
+summary(acmi_aov)
+
+##ARTR
+
+##shapiro
+shapiro.test(artr_fis[,3])
+
+##levene
+leveneTest(artr_fis[,3] ~ as.factor(artr_fis[,1]))
+
+##anova
+artr_aov <- aov(artr_fis[,3] ~ as.factor(artr_fis[,1]))
+summary(artr_aov)
+
+##ASCA
+
+##shapiro
+shapiro.test(asca_fis[,3])
+
+##levene
+leveneTest(asca_fis[,3] ~ as.factor(asca_fis[,1]))
+
+##anova
+asca_aov <- aov(asca_fis[,3] ~ as.factor(asca_fis[,1]))
+summary(asca_aov)
+
+##CHVI
+
+##shapiro
+shapiro.test(chvi_fis[,3])
+
+##levene
+leveneTest(chvi_fis[,3] ~ as.factor(chvi_fis[,1]))
+
+##anova
+chvi_aov <- aov(chvi_fis[,3] ~ as.factor(chvi_fis[,1]))
+summary(chvi_aov)
+
+##ERNA
+
+##shapiro
+shapiro.test(erna_fis[,3])
+
+##levene
+leveneTest(erna_fis[,3] ~ as.factor(erna_fis[,1]))
+
+##anova
+erna_aov <- aov(erna_fis[,3] ~ as.factor(erna_fis[,1]))
+summary(erna_aov)
+
+##post hoc
+
+posthoc.kruskal.nemenyi.test(erna_fis[,3] ~ as.factor(erna_fis[,1]))
+
+##ERUM
+
+erum_fis[erum_fis$Accession == "Regional",][,1] <- NA
+is.na(erum_fis) <- "Local2"
+
+##shapiro
+shapiro.test(erum_fis[,3])
+
+##levene
+leveneTest(erum_fis[,3] ~ as.factor(erum_fis[,1]))
+
+##anova
+erum_aov <- aov(erum_fis[,3] ~ as.factor(erum_fis[,1]))
+summary(erum_aov)
+
+##GRSQ
+
+##shapiro
+shapiro.test(grsq_fis[,3])
+
+##levene
+leveneTest(grsq_fis[,3] ~ as.factor(grsq_fis[,1]))
+
+##anova
+grsq_aov <- aov(grsq_fis[,3] ~ as.factor(grsq_fis[,1]))
+summary(grsq_aov)
+
+##Compare by species
+##shapiro
+shapiro.test(fis_species[,3])
+
+##levene
+leveneTest(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+##anova
+kruskal.test(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+##differences by species
+posthoc.kruskal.nemenyi.test(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+##now plot box plots
+pdf("inbreeding_boxplot.pdf", width = 8, height = 6)
+ggplot(data = fis_species, aes(x=Species, y=Fis)) + geom_hline(yintercept = 0) + geom_hline(yintercept = 0.5)+
+  geom_boxplot(aes(fill=Accession)) + xlab("Species") + 
+  ylab("Inbreeding Coefficients") + ggtitle("Average Inbreeding Among Accessions") +
+  scale_fill_manual(values = c("darkgreen", "darkorchid4", "darkorchid1", "dodgerblue")) +
+  ylim(c(-1,1)) 
+dev.off()  
+
+##calculate between species avg inbreeding 
+shapiro.test(fis_species[,3])
+
+leveneTest(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+kruskal.test(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+##differences by species
+posthoc.kruskal.nemenyi.test(fis_species[,3] ~ as.factor(fis_species[,2]))
+
+##Between species diversity
+pdf("boxplot_inbreeding_amongspecies.pdf", width = 8, height = 6)
+ggplot(data = fis_species, aes(x=Species, y=Fis)) + geom_hline(yintercept = 0) + 
+  geom_boxplot() + xlab("Species") + 
+  ylab("Inbreeding Coefficients") + ggtitle("Inbreeding Among Species") +
+  ylim(c(-1,1)) 
+dev.off()
+
+##Hexp between species 
+hexp_allspecies <- rbind(hexp_acmi_matrix, hexp_artr_matrix, hexp_asca_matrix,
+                         hexp_chvi_matrix, hexp_erna_matrix, hexp_erum_matrix,
+                         hexp_grsq_matrix)
+
+
+##Hexp assumption tests
+shapiro.test(hexp_allspecies[,2])
+
+leveneTest(hexp_allspecies[,2] ~ as.factor(hexp_allspecies[,3]))
+
+##Kruskal wallis time
+kruskal.test(hexp_allspecies[,2] ~ as.factor(hexp_allspecies[,3]))
+
+##differences by species
+posthoc.kruskal.nemenyi.test(hexp_allspecies[,2] ~ as.factor(hexp_allspecies[,3]))
+
+
+###Now plot!
+
+pdf("boxplot_hexp_allspecies.pdf", width = 8, height = 6)
+ggplot(data = hexp_allspecies, aes(x=species, y=Hexp)) + 
+  geom_boxplot() + xlab("Species") + ylim(0,1) +
+  ylab("Expected Heterozygosity") + ggtitle("Expected Heterozygosity Among Species") 
+dev.off()
+
+##By species number of alleles
+shapiro.test(num_all_bind[,2])
+
+leveneTest(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##Kruskal wallis time
+kruskal.test(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##differences by species
+posthoc.kruskal.nemenyi.test(num_all_bind[,2] ~ as.factor(num_all_bind[,3]))
+
+##Now plot
+
+pdf("boxplot_num_all_allspecies.pdf", width = 8, height = 6)
+ggplot(data = num_all_bind, aes(x=species, y=Num_Alls)) + ylim(0,25) +
+  geom_boxplot() + xlab("Species") +
+  ylab("Number of Alleles") + ggtitle("Number of Alleles by Species") 
+dev.off()
