@@ -55,16 +55,6 @@ for(a in 1:length(accession_list)){
   
 }  
 #  gendiv_df[a,2] <- mean(as.numeric(na_matrix[na_matrix[,1] == paste0(accession_list[[a]]),][,2]))
-
-ne_df <- data.frame(ne_df)
-ne_df[,1] <- accession_list
-
-##now separate
-ne_df[,1] <- gsub("\\_.*","",ne_df[,1])
-ne_df[,2] <- gsub("^.*\\_","", ne_df[,1])
-
-
-  
  # gendiv_df[a,3] <- mean(as.numeric(he_matrix[he_matrix[,1] == paste0(accession_list[[a]]),][,2]))
   
  # gendiv_df[a,4] <- mean(as.numeric(ho_matrix[ho_matrix[,1] == paste0(accession_list[[a]]),][,2]))
@@ -75,26 +65,40 @@ ne_df[,2] <- gsub("^.*\\_","", ne_df[,1])
 
 ##reformat loop
 
-ne_matrix <- cbind(paste0(master_gendiv$Species,master_gendiv$Accession), as.numeric(master_gendiv$Ne))
-
-
 ##write to data frame
 ##write loop to calculate means 
 for(a in 1:length(accession_list)){
   
-  gendiv_df[a,1] <- mean(as.numeric(ne_matrix[ne_matrix[,1] == paste0(accession_list[[a]]),][,2]))
+  ne_df[a,1] <- mean(as.numeric(ne_matrix[ne_matrix[,1] == paste0(accession_list[[a]]),][,2]))
+  
+  ne_df[a,2] <- (ne_df[a,1]) + std.error(as.numeric(ne_matrix[ne_matrix[,1] == paste0(accession_list[[a]]),][,2]))
 
+  ne_df[a,3] <- (ne_df[a,1]) - std.error(as.numeric(ne_matrix[ne_matrix[,1] == paste0(accession_list[[a]]),][,2]))
+  
 }
 
 ##create df 
+ne_matrix <- cbind(paste0(master_gendiv$Species,master_gendiv$Accession), as.numeric(master_gendiv$Ne))
+
+ne_df <- matrix(nrow = length(accession_list), ncol = 3)
+
+##
 ne_df <- data.frame(ne_df)
+
+##now separate
+ne_df[,1] <- gsub("\\_.*","",ne_df[,1])
+ne_df[,2] <- gsub("^.*\\_","", ne_df[,1])
+
 colnames(ne_df) <- c("Species", "Accession","NE")
 
 ne_df[,2] <- as.factor(ne_df[,2])
 
+plot(ne_df[,3])
+
 ###Plot 
-ggplot(data = ne_df, aes(x=Species, y=Ho)) + 
-  geom_boxplot(aes(fill=Accession)) + xlab("Species") + 
-  ylab("Inbreeding Coefficient") + ggtitle("Inbreeding by Species") +
-  scale_fill_manual(values = c("gray33", "gray48", "gray77")) 
+ggplot(data = ne_df, aes(x=Species, y=NE)) + 
+  geom_bar(aes(fill = Accession), stat = "identity", position = "dodge") + xlab("Species") + 
+  ylab("Effective Number of Alleles") + ggtitle("Effective Number of Alleles") + 
+  scale_fill_manual(values = c("gray33", "gray48", "gray77")) + 
+  geom_errorbar()
 
